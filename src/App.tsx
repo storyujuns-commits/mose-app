@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth, fetchUserProfile, fetchUserProgress, fetchUserSettings, saveUserProgress, saveUserSettings } from './lib/firebase';
+import { auth, fetchUserProfile, fetchUserProgress, fetchUserSettings, saveUserProgress, saveUserSettings, syncUserToFirestore } from './lib/firebase';
 import { UserProfile, UserProgress, UserSettings, TabType, Lesson } from './types';
 import { Header } from './components/Header';
 import { BottomNav } from './components/BottomNav';
@@ -68,14 +68,47 @@ export default function App() {
     // Firebase Auth listener
     const unsubscribe = onAuthStateChanged(auth, async (user: User | null) => {
       if (user) {
-        // Fetch user data from Firestore
-        const profile = await fetchUserProfile(user.uid);
-        const cloudProgress = await fetchUserProgress(user.uid);
-        const cloudSettings = await fetchUserSettings(user.uid);
+        try {
+          // Fetch user data from Firestore
+          let profile = await fetchUserProfile(user.uid);
+          let cloudProgress = await fetchUserProgress(user.uid);
+          let cloudSettings = await fetchUserSettings(user.uid);
 
-        if (profile) setCurrentUser(profile);
-        if (cloudProgress) setProgress(cloudProgress);
-        if (cloudSettings) setSettings(cloudSettings);
+          // If profile doc does not exist yet in Firestore, sync/create it now
+          if (!profile) {
+            await syncUserToFirestore(user);
+            profile = await fetchUserProfile(user.uid);
+            cloudProgress = await fetchUserProgress(user.uid);
+            cloudSettings = await fetchUserSettings(user.uid);
+          }
+
+          // Fallback user profile if Firestore document reading fails
+          const fallbackProfile: UserProfile = {
+            uid: user.uid,
+            nickname: user.displayName || user.email?.split('@')[0] || '학습자',
+            email: user.email || '',
+            profileImage: user.photoURL || '',
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+            authProvider: user.providerData[0]?.providerId === 'google.com' ? 'google' : 'email',
+          };
+
+          setCurrentUser(profile || fallbackProfile);
+          if (cloudProgress) setProgress(cloudProgress);
+          if (cloudSettings) setSettings(cloudSettings);
+        } catch (err) {
+          console.error('Error fetching user profile from Firestore:', err);
+          // Always ensure currentUser is set so UI reflects authenticated state
+          setCurrentUser({
+            uid: user.uid,
+            nickname: user.displayName || user.email?.split('@')[0] || '학습자',
+            email: user.email || '',
+            profileImage: user.photoURL || '',
+            createdAt: new Date().toISOString(),
+            lastLogin: new Date().toISOString(),
+            authProvider: 'email',
+          });
+        }
       } else {
         setCurrentUser(null);
       }
