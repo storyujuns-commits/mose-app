@@ -116,7 +116,18 @@ export async function signupWithCustomAccount({
   await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
 
   // 3. Create Firebase Auth user
-  const userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+  let userCredential;
+  try {
+    userCredential = await createUserWithEmailAndPassword(auth, cleanEmail, password);
+  } catch (err: any) {
+    if (err.code === 'auth/operation-not-allowed' || err?.message?.includes('operation-not-allowed')) {
+      throw new Error('Firebase 콘솔에서 "이메일/비밀번호" 로그인 방식이 활성화되어 있지 않습니다. Firebase 콘솔 > Authentication > Sign-in method에서 이메일/비밀번호를 활성화해주세요.');
+    }
+    if (err.code === 'auth/email-already-in-use') {
+      throw new Error('이미 가입된 이메일 주소입니다.');
+    }
+    throw err;
+  }
   const user = userCredential.user;
 
   // 4. Register mapping documents for fast lookup
@@ -206,7 +217,11 @@ export async function loginWithIdOrEmail(
     await syncUserToFirestore(user);
     return user;
   } catch (error: any) {
-    if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+    if (error.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+      throw new Error('현재 도메인(storymorse.netlify.app)이 승인되지 않았습니다. Firebase 콘솔 > Authentication > 설정 > 승인된 도메인에 추가해주세요.');
+    } else if (error.code === 'auth/operation-not-allowed' || error?.message?.includes('operation-not-allowed')) {
+      throw new Error('Firebase 콘솔에서 "이메일/비밀번호" 로그인 방식이 활성화되어 있지 않습니다. Firebase 콘솔 > Authentication > Sign-in method에서 이메일/비밀번호를 활성화해주세요.');
+    } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
       throw new Error('비밀번호가 올바르지 않습니다.');
     } else if (error.code === 'auth/user-not-found') {
       throw new Error('가입되지 않은 계정입니다.');
@@ -224,6 +239,13 @@ export async function loginWithGoogle() {
     return user;
   } catch (error: any) {
     console.error('Google Sign-In error:', error);
+    if (error.code === 'auth/unauthorized-domain' || error?.message?.includes('unauthorized-domain')) {
+      throw new Error('현재 승인되지 않은 도메인에서 접속 중입니다. Firebase 콘솔 > Authentication > 설정 > 승인된 도메인에 "storymorse.netlify.app"을 추가해주세요.');
+    } else if (error.code === 'auth/operation-not-allowed' || error?.message?.includes('operation-not-allowed')) {
+      throw new Error('Firebase 콘솔에서 "Google" 로그인 방식이 활성화되어 있지 않습니다. Firebase 콘솔 > Authentication > Sign-in method에서 Google 로그인을 활성화해주세요.');
+    } else if (error.code === 'auth/popup-closed-by-user') {
+      throw new Error('로그인 팝업창이 닫혔습니다.');
+    }
     throw error;
   }
 }
