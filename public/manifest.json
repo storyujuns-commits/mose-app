@@ -1,0 +1,23 @@
+{
+  "short_name": "모스 마스터",
+  "name": "Morse Master - 모스부호 마스터",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "display": "standalone",
+  "orientation": "portrait",
+  "description": "한국어 및 영어 모스부호를 누구나 쉽게 배울 수 있는 스마트 학습 앱",
+  "lang": "ko"
+}

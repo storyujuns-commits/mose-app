@@ -1,0 +1,72 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profile",
+      "description": "User profile metadata",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "nickname": { "type": "string" },
+        "email": { "type": "string" },
+        "profileImage": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "lastLogin": { "type": "string" },
+        "authProvider": { "type": "string" }
+      },
+      "required": ["email", "nickname"]
+    },
+    "usernames": {
+      "title": "Username Mapping",
+      "description": "Unique username registry for ID lookups",
+      "type": "object",
+      "properties": {
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["username", "email", "uid"]
+    },
+    "nicknames": {
+      "title": "Nickname Registry",
+      "description": "Unique nickname registry",
+      "type": "object",
+      "properties": {
+        "nickname": { "type": "string" },
+        "uid": { "type": "string" }
+      },
+      "required": ["nickname", "uid"]
+    },
+    "progress": {
+      "title": "User Learning Progress",
+      "description": "Progress, statistics, and streak for user learning",
+      "type": "object",
+      "properties": {
+        "koreanProgress": { "type": "number" },
+        "englishProgress": { "type": "number" },
+        "learnedCharacters": { "type": "array", "items": { "type": "string" } },
+        "difficultCharacters": { "type": "array", "items": { "type": "string" } },
+        "totalQuizCount": { "type": "number" },
+        "correctQuizCount": { "type": "number" },
+        "score": { "type": "number" },
+        "streak": { "type": "number" },
+        "totalStudyTime": { "type": "number" },
+        "lastStudyDate": { "type": "string" },
+        "lastChapterId": { "type": "string" },
+        "lastLessonId": { "type": "string" }
+      },
+      "required": []
+    },
+    "settings": {
+      "title": "User Settings",
+      "description": "Preferences for sound, theme, speed, and language",
+      "type": "object",
+      "properties": {
+        "soundEnabled": { "type": "boolean" },
+        "theme": { "type": "string" },
+        "language": { "type": "string" },
+        "soundSpeed": { "type": "string" }
+      },
+      "required": []
+    }
+  }
+}

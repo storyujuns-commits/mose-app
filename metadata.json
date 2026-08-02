@@ -1,0 +1,6 @@
+{
+  "name": "Morse Master",
+  "description": "한국어와 영어 모스부호를 초보자가 쉽고 재미있게 배울 수 있는 모바일 중심 교육용 웹앱",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
